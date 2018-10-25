@@ -11,7 +11,7 @@
 # 
 # Run the following cell to load the packages and dependencies that are going to be useful for your journey!
 
-# In[4]:
+# In[1]:
 
 import argparse
 import os
@@ -135,7 +135,7 @@ get_ipython().magic('matplotlib inline')
 # 
 # Reminder: to call a Keras function, you should use `K.function(...)`.
 
-# In[9]:
+# In[4]:
 
 # GRADED FUNCTION: yolo_filter_boxes
 
@@ -196,7 +196,7 @@ def yolo_filter_boxes(box_confidence, boxes, box_class_probs, threshold = .6):
     return scores, boxes, classes
 
 
-# In[10]:
+# In[5]:
 
 with tf.Session() as test_a:
     box_confidence = tf.random_normal([19, 19, 5, 1], mean=1, stddev=4, seed = 1)
@@ -291,7 +291,7 @@ with tf.Session() as test_a:
 # 
 # In this code, we use the convention that (0,0) is the top-left corner of an image, (1,0) is the upper-right corner, and (1,1) the lower-right corner. 
 
-# In[11]:
+# In[28]:
 
 # GRADED FUNCTION: iou
 
@@ -305,29 +305,29 @@ def iou(box1, box2):
 
     # Calculate the (y1, x1, y2, x2) coordinates of the intersection of box1 and box2. Calculate its Area.
     ### START CODE HERE ### (≈ 5 lines)
-    xi1 = max(box1[0], box2[0])
-    yi1 = max(box1[1], box2[1])
-    xi2 = min(box1[2], box2[2])
-    yi2 = min(box1[3], box2[3])
-    inter_area = (yi2-yi1)*(xi2-xi1)
+    xi1 = np.maximum(box1[0], box2[0])
+    yi1 = np.maximum(box1[1], box2[1])
+    xi2 = np.minimum(box1[2], box2[2])
+    yi2 = np.minimum(box1[3], box2[3])
+    inter_area = max(yi2-yi1, 0) * max(xi2-xi1, 0)
     ### END CODE HERE ###    
 
     # Calculate the Union area by using Formula: Union(A,B) = A + B - Inter(A,B)
     ### START CODE HERE ### (≈ 3 lines)
-    box1_area = (box1[3] -box1[1]) * (box1[2] -box1[0])
-    box2_area = (box2[3] -box2[1]) * (box2[2] -box2[0])
+    box1_area = (box1[2] -box1[0]) * (box1[3] -box1[1])
+    box2_area = (box2[2] -box2[0]) * (box2[3] -box2[1])
     union_area = box1_area + box2_area - inter_area
     ### END CODE HERE ###
     
     # compute the IoU
     ### START CODE HERE ### (≈ 1 line)
-    iou = inter_area/union_area
+    iou = float(inter_area) / float(union_area)
     ### END CODE HERE ###
     
     return iou
 
 
-# In[12]:
+# In[29]:
 
 box1 = (2, 1, 4, 3)
 box2 = (1, 2, 3, 4) 
@@ -359,7 +359,7 @@ print("iou = " + str(iou(box1, box2)))
 # - [tf.image.non_max_suppression()](https://www.tensorflow.org/api_docs/python/tf/image/non_max_suppression)
 # - [K.gather()](https://www.tensorflow.org/api_docs/python/tf/gather)
 
-# In[19]:
+# In[30]:
 
 # GRADED FUNCTION: yolo_non_max_suppression
 
@@ -406,7 +406,7 @@ def yolo_non_max_suppression(scores, boxes, classes, max_boxes = 10, iou_thresho
     return scores, boxes, classes
 
 
-# In[20]:
+# In[31]:
 
 with tf.Session() as test_b:
     scores = tf.random_normal([54,], mean=1, stddev=4, seed = 1)
@@ -494,7 +494,7 @@ with tf.Session() as test_b:
 # 
 # Don't worry about these two functions; we'll show you where they need to be called.  
 
-# In[21]:
+# In[32]:
 
 # GRADED FUNCTION: yolo_eval
 
@@ -541,7 +541,7 @@ def yolo_eval(yolo_outputs, image_shape = (720., 1280.), max_boxes=10, score_thr
     return scores, boxes, classes
 
 
-# In[22]:
+# In[33]:
 
 with tf.Session() as test_b:
     yolo_outputs = (tf.random_normal([19, 19, 5, 1], mean=1, stddev=4, seed = 1),
@@ -630,7 +630,7 @@ with tf.Session() as test_b:
 
 # In this part, you are going to use a pretrained model and test it on the car detection dataset. As usual, you start by **creating a session to start your graph**. Run the following cell.
 
-# In[23]:
+# In[34]:
 
 sess = K.get_session()
 
@@ -641,7 +641,7 @@ sess = K.get_session()
 # 
 # The car detection dataset has 720x1280 images, which we've pre-processed into 608x608 images. 
 
-# In[24]:
+# In[35]:
 
 class_names = read_classes("model_data/coco_classes.txt")
 anchors = read_anchors("model_data/yolo_anchors.txt")
@@ -652,7 +652,7 @@ image_shape = (720., 1280.)
 # 
 # Training a YOLO model takes a very long time and requires a fairly large dataset of labelled bounding boxes for a large range of target classes. You are going to load an existing pretrained Keras YOLO model stored in "yolo.h5". (These weights come from the official YOLO website, and were converted using a function written by Allan Zelener. References are at the end of this notebook. Technically, these are the parameters from the "YOLOv2" model, but we will more simply refer to it as "YOLO" in this notebook.) Run the cell below to load the model from this file.
 
-# In[25]:
+# In[36]:
 
 
 yolo_model = load_model("model_data/yolo.h5")
@@ -660,7 +660,7 @@ yolo_model = load_model("model_data/yolo.h5")
 
 # This loads the weights of a trained YOLO model. Here's a summary of the layers your model contains.
 
-# In[26]:
+# In[37]:
 
 yolo_model.summary()
 
@@ -673,7 +673,7 @@ yolo_model.summary()
 # 
 # The output of `yolo_model` is a (m, 19, 19, 5, 85) tensor that needs to pass through non-trivial processing and conversion. The following cell does that for you.
 
-# In[27]:
+# In[38]:
 
 yolo_outputs = yolo_head(yolo_model.output, anchors, len(class_names))
 
@@ -684,7 +684,7 @@ yolo_outputs = yolo_head(yolo_model.output, anchors, len(class_names))
 # 
 # `yolo_outputs` gave you all the predicted boxes of `yolo_model` in the correct format. You're now ready to perform filtering and select only the best boxes. Lets now call `yolo_eval`, which you had previously implemented, to do this. 
 
-# In[28]:
+# In[39]:
 
 scores, boxes, classes = yolo_eval(yolo_outputs, image_shape)
 
@@ -710,7 +710,7 @@ scores, boxes, classes = yolo_eval(yolo_outputs, image_shape)
 # 
 # **Important note**: when a model uses BatchNorm (as is the case in YOLO), you will need to pass an additional placeholder in the feed_dict {K.learning_phase(): 0}.
 
-# In[29]:
+# In[40]:
 
 def predict(sess, image_file):
     """
@@ -754,7 +754,7 @@ def predict(sess, image_file):
 
 # Run the following cell on the "test.jpg" image to verify that your function is correct.
 
-# In[31]:
+# In[41]:
 
 out_scores, out_boxes, out_classes = predict(sess, "test.jpg")
 
@@ -858,3 +858,8 @@ out_scores, out_boxes, out_classes = predict(sess, "test.jpg")
 
 # **Car detection dataset**:
 # <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">The Drive.ai Sample Dataset</span> (provided by drive.ai) is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>. We are especially grateful to Brody Huval, Chih Hu and Rahul Patel for collecting and providing this dataset. 
+
+# In[ ]:
+
+
+
